@@ -1,38 +1,25 @@
 class CalculatorController < ApplicationController
   def show
 
-    #VALIDATE_EXPRESSION = %r/[a-zA-Z]+/
-
-
-    if !request.headers.key? 'expression'
-      render json: {
-         'description' => "no header 'expression'"
-      }, :status => :bad_request
-      return
+    if !request.parameters.key? 'expression'
+      result = 'no parameters \'expression\''
+      puts("no parameters expression")
+    elsif !!(request.parameters['expression'] =~ /^[^a-zA-z]+$/) == false
+      result = 'incorrect expression'
+      puts("bad expression (regexp)")
+    else
+      begin
+        result = eval(request.parameters['expression'])
+      rescue SyntaxError
+        result = 'incorrect expression'
+      end
     end
 
-    expression = request.headers['expression']
-    puts "=================" + expression.to_s + (!!(expression =~ /^[^a-zA-z]$/)).to_s
-    if !!(expression =~ /^[^a-zA-z]+$/) == false
-      render json: {
-          'description' => "bad expression"
-      }, :status => :bad_request
-      return
-    end
-
-    begin
-      result = eval(expression)
-    rescue SyntaxError
-      puts "=+++++++++++++"
-      render json: {
-          'description' => "bad expression"
-      }, :status => :bad_request
-      return
-    end
+    puts result
 
     render json: {
-        'expression' => expression,
-        'result'     => eval(expression)
+        'result'     => result
     }
+
   end
 end
